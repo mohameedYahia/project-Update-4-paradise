@@ -9,6 +9,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- SheetJS for Excel Export/Import -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Mammoth.js for DOCX import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.16/mammoth.browser.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -419,6 +421,11 @@
                         <div id="tendering-cards-view">
                             <h2 class="text-2xl font-bold mb-6" style="color: var(--olive-dark);">أدوات طرح المشاريع</h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div id="show-karrasa-page" class="functional-card cursor-pointer bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center">
+                                    <div class="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center mb-4"><span class="text-4xl">📑</span></div>
+                                    <h3 class="font-bold text-xl portal-theme-text">كراسات الشروط</h3>
+                                    <p class="text-sm text-gray-500 mt-2">إنشاء وتعديل كراسات الشروط كنماذج.</p>
+                                </div>
                                 <div id="show-boq-items-page" class="functional-card cursor-pointer bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center">
                                     <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-4"><span class="text-4xl">📝</span></div>
                                     <h3 class="font-bold text-xl portal-theme-text">بنود جدول الكميات</h3>
@@ -429,14 +436,48 @@
                                     <h3 class="font-bold text-xl portal-theme-text">قوالب جدول الكميات</h3>
                                     <p class="text-sm text-gray-500 mt-2">إنشاء وتعديل قوالب جداول الكميات الجاهزة للمشاريع.</p>
                                 </div>
-                                <div class="functional-card bg-gray-50 p-6 rounded-xl shadow-inner flex flex-col items-center text-center border border-dashed">
-                                    <div class="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mb-4"><span class="text-4xl">⚙️</span></div>
-                                    <h3 class="font-bold text-xl text-gray-400">وظيفة مستقبلية</h3>
-                                    <p class="text-sm text-gray-400 mt-2">هذه المساحة محجوزة للتوسعات القادمة في النظام.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Karrasa Page -->
+                    <div id="karrasa-page" class="page-content hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold" style="color: var(--olive-dark);">إدارة كراسات الشروط</h2>
+                            <button class="back-to-tendering-cards bg-gray-800 text-white text-sm rounded-lg px-4 py-2 hover:bg-black transition-colors">→ الرجوع</button>
+                        </div>
+                        <div id="karrasa-list-view">
+                           <div class="bg-white p-6 rounded-xl shadow-lg">
+                               <div class="flex items-center gap-4 mb-4">
+                                   <button id="add-new-karrasa-btn" class="bg-blue-600 text-white text-sm rounded-lg px-4 py-2 hover:bg-blue-700"><span>➕</span> إضافة كراسة جديدة</button>
+                               </div>
+                               <div id="karrasa-list" class="space-y-3">
+                                   <!-- Karrasa items will be listed here -->
+                               </div>
+                           </div>
+                        </div>
+                        <div id="karrasa-editor-view" class="hidden bg-white p-6 rounded-xl shadow-lg">
+                            <div>
+                                <label for="karrasaName" class="block text-sm font-medium mb-1">اسم الكراسة</label>
+                                <input type="text" id="karrasaName" placeholder="مثال: كراسة شروط مشروع صيانة" class="data-table input w-full mb-4">
+                            </div>
+                            <div>
+                                <label for="karrasaContent" class="block text-sm font-medium mb-1">المحتوى</label>
+                                <textarea id="karrasaContent" rows="15" class="data-table textarea w-full"></textarea>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <div>
+                                    <button id="karrasa-import-word" class="bg-teal-600 text-white text-sm rounded-lg px-4 py-2 hover:bg-teal-700 flex items-center gap-2"><span>📤</span> استيراد من Word</button>
+                                    <button id="karrasa-export-word" class="bg-green-600 text-white text-sm rounded-lg px-4 py-2 hover:bg-green-700 flex items-center gap-2"><span>⬇️</span> تحميل كـ Word</button>
+                                </div>
+                                <div>
+                                    <button id="cancel-karrasa-edit" class="bg-gray-500 text-white text-sm rounded-lg px-4 py-2 hover:bg-gray-600">إلغاء</button>
+                                    <button id="save-karrasa-edit" class="bg-blue-600 text-white text-sm rounded-lg px-4 py-2 hover:bg-blue-700 mr-2">حفظ الكراسة</button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                     <!-- BOQ Items Page -->
                     <div id="boq-items-page" class="page-content hidden">
@@ -466,6 +507,7 @@
                     </div>
                     
                     <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .xls">
+                    <input type="file" id="word-file-input" class="hidden" accept=".docx">
                     <input type="file" id="excel-template-file-input" class="hidden" accept=".xlsx, .xls">
 
 
@@ -758,6 +800,9 @@
                     { id: 2, number: '205', name: 'أبواب خشب', unit: 'عدد', price: 1200, scope: 'باب خشب سويدي', category: 'معماري', specialization: 'تشطيبات' },
                 ];
                 let boqTemplates = [];
+                let karrasaTemplates = [{id: 1, name: "كراسة شروط عامة", content: "محتوى تجريبي للكراسة..."}];
+                let currentEditingKarrasaId = null;
+
                 let availableRegions = ['الرياض', 'مكة', 'المدينة', 'الشرقية'];
                 let availableCategories = ['إنشائي', 'معماري', 'كهرباء', 'ميكانيكا'];
                 let availableSpecializations = ['مدني', 'تشطيبات', 'قوى', 'تكييف'];
@@ -770,6 +815,7 @@
                 const sidebar = document.getElementById('sidebar');
                 let currentProjectStatus = '', currentRegion = 'all', newProjectData = {}, currentAddFileContext = {};
                 const boqItemsPage = document.getElementById('boq-items-page');
+                const karrasaPage = document.getElementById('karrasa-page');
                 const boqTemplatesPage = document.getElementById('boq-templates-page');
                 const tenderingCardsView = document.getElementById('tendering-cards-view');
                 let barChart; 
@@ -807,15 +853,18 @@
                     if (pageId === 'tendering-sub') {
                         const tenderingCardsView = document.getElementById('tendering-cards-view');
                         if (tenderingCardsView) tenderingCardsView.classList.remove('hidden');
+                        karrasaPage.classList.add('hidden');
+                        boqItemsPage.classList.add('hidden');
+                        boqTemplatesPage.classList.add('hidden');
                     } else if (pageId === 'projects-sub') {
                         renderSummaryCards();
                     } else if (pageId === 'dashboard') {
                         renderDashboard();
-                    } else if (pageId === 'boq-items-page') {
-                        renderBoqItemsTable();
-                    } else if (pageId === 'boq-templates-page') {
-                        // By default, when navigating to the templates page, show the list.
-                        showBoqTemplatesListView();
+                    } else if (pageId === 'boq-items-page' || pageId === 'boq-templates-page' || pageId === 'karrasa-page') {
+                        document.getElementById('tendering-sub').classList.remove('hidden');
+                        if (pageId === 'boq-items-page') renderBoqItemsTable();
+                        else if (pageId === 'boq-templates-page') showBoqTemplatesListView();
+                        else if (pageId === 'karrasa-page') showKarrasaListView();
                     } else if (pageId === 'archive') {
                         renderArchivePage();
                     }
@@ -1311,6 +1360,128 @@
                     };
                     reader.readAsArrayBuffer(file);
                 });
+                
+                // KARRASA PAGE LOGIC
+                document.getElementById('show-karrasa-page')?.addEventListener('click', () => {
+                     document.getElementById('tendering-cards-view').classList.add('hidden');
+                     showPage('karrasa-page');
+                });
+                
+                 function showKarrasaListView() {
+                    document.getElementById('karrasa-list-view').classList.remove('hidden');
+                    document.getElementById('karrasa-editor-view').classList.add('hidden');
+                    pageTitle.textContent = 'إدارة كراسات الشروط';
+                    renderKarrasaList();
+                }
+
+                function showKarrasaEditorView(karrasaId = 'new') {
+                    document.getElementById('karrasa-list-view').classList.add('hidden');
+                    document.getElementById('karrasa-editor-view').classList.remove('hidden');
+                    currentEditingKarrasaId = karrasaId;
+
+                    const nameInput = document.getElementById('karrasaName');
+                    const contentInput = document.getElementById('karrasaContent');
+
+                    if(karrasaId === 'new') {
+                        nameInput.value = '';
+                        contentInput.value = '';
+                    } else {
+                        const karrasa = karrasaTemplates.find(k => k.id == karrasaId);
+                        if(karrasa) {
+                            nameInput.value = karrasa.name;
+                            contentInput.value = karrasa.content;
+                        }
+                    }
+                }
+                
+                function renderKarrasaList() {
+                    const container = document.getElementById('karrasa-list');
+                    if (karrasaTemplates.length === 0) {
+                        container.innerHTML = `<p class="text-gray-500">لا توجد كراسات محفوظة.</p>`;
+                        return;
+                    }
+                    container.innerHTML = karrasaTemplates.map(k => `
+                        <div class="bg-gray-50 p-3 rounded-lg flex justify-between items-center border">
+                            <h4 class="font-bold">${k.name}</h4>
+                            <div class="space-x-2 space-x-reverse">
+                                 <button class="edit-karrasa-btn text-blue-600 hover:text-blue-800" data-id="${k.id}">تعديل</button>
+                                 <button class="delete-karrasa-btn text-red-600 hover:text-red-800" data-id="${k.id}">حذف</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                document.getElementById('add-new-karrasa-btn')?.addEventListener('click', () => showKarrasaEditorView('new'));
+                document.getElementById('cancel-karrasa-edit')?.addEventListener('click', showKarrasaListView);
+                
+                document.getElementById('karrasa-list').addEventListener('click', e => {
+                    const editBtn = e.target.closest('.edit-karrasa-btn');
+                    if (editBtn) {
+                        showKarrasaEditorView(editBtn.dataset.id);
+                    }
+                    // Add delete logic here
+                });
+                
+                document.getElementById('save-karrasa-edit').addEventListener('click', () => {
+                     const name = document.getElementById('karrasaName').value;
+                     const content = document.getElementById('karrasaContent').value;
+                     if (!name) { alert("الرجاء إدخال اسم للكراسة."); return; }
+                     
+                     if (currentEditingKarrasaId === 'new') {
+                         karrasaTemplates.push({ id: Date.now(), name, content });
+                     } else {
+                         const index = karrasaTemplates.findIndex(k => k.id == currentEditingKarrasaId);
+                         if(index !== -1) {
+                             karrasaTemplates[index].name = name;
+                             karrasaTemplates[index].content = content;
+                         }
+                     }
+                     showKarrasaListView();
+                });
+                
+                // Word Import/Export
+                const wordFileInput = document.getElementById('word-file-input');
+                document.getElementById('karrasa-import-word').addEventListener('click', () => wordFileInput.click());
+                document.getElementById('karrasa-export-word').addEventListener('click', () => {
+                    const name = document.getElementById('karrasaName').value || 'karrasa';
+                    const content = document.getElementById('karrasaContent').value;
+                    const blob = new Blob([content], { type: 'application/msword;charset=utf-8' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `${name}.doc`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+                wordFileInput.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const arrayBuffer = e.target.result;
+                        
+                        // Use mammoth.js to extract text
+                        mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                            .then(function(result){
+                                const text = result.value; // The raw text
+                                document.getElementById('karrasaContent').value = text;
+                            })
+                            .catch(function(err) {
+                                console.error('Error reading docx file:', err);
+                                alert('حدث خطأ أثناء قراءة الملف. يرجى التأكد من أنه ملف Word (.docx) صالح.');
+                            });
+                    };
+                    
+                    reader.onerror = function(err) {
+                        console.error('FileReader error:', err);
+                        alert('حدث خطأ أثناء قراءة الملف.');
+                    };
+
+                    reader.readAsArrayBuffer(file);
+                    event.target.value = ''; // Reset file input
+                });
+
                 
                 // ARCHIVE PAGE LOGIC
                 function renderArchivePage(searchTerm = '') {
